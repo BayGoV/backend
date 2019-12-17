@@ -9,7 +9,7 @@ export class AppController {
   @UseGuards(AuthGuard('jwt'))
   @Get('api')
   authenticated(): string {
-    return 'Success';
+    return '"Success"';
   }
 
   @Get()
