@@ -4,10 +4,9 @@ import { HttpService, Injectable } from '@nestjs/common';
 import { OAuth2Client } from 'google-auth-library';
 import * as jwkToPEM from 'jwk-to-pem';
 
-const CLIENT_ID =
-  '253851350328-d6ra0c1359j8ekov0asaqgfk97hbciom.apps.googleusercontent.com';
-const GOOGLE_OID_DISCOVERY_URL =
-  'https://accounts.google.com/.well-known/openid-configuration';
+const CLIENT_ID = 'bgov-web';
+const BGOV_OID_DISCOVERY_URL =
+  'https://securetoken.google.com/bgov-web/.well-known/openid-configuration';
 
 interface GoogleOidDiscovery {
   jwks_uri: string;
@@ -35,7 +34,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async getKeys() {
     const jwksResponse = await this.httpService
-      .get<GoogleOidDiscovery>(GOOGLE_OID_DISCOVERY_URL)
+      .get<GoogleOidDiscovery>(BGOV_OID_DISCOVERY_URL)
       .toPromise();
     const keysResponse = await this.httpService
       .get(jwksResponse.data.jwks_uri)
