@@ -1,10 +1,9 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { HttpService, Injectable } from '@nestjs/common';
-import { OAuth2Client } from 'google-auth-library';
 import * as jwkToPEM from 'jwk-to-pem';
+import { decode } from 'jsonwebtoken';
 
-const CLIENT_ID = 'bgov-web';
 const BGOV_OID_DISCOVERY_URL =
   'https://securetoken.google.com/bgov-web/.well-known/openid-configuration';
 
@@ -21,7 +20,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       secretOrKeyProvider: async (request, rawJwtToken, done) => {
         // tslint:disable-next-line:no-console
-        const secret = await this.verify(rawJwtToken).catch(console.error);
+        const secret = await this.verify(rawJwtToken).catch(e => {
+          this.getKeys();
+          // tslint:disable-next-line:no-console
+          console.error(e);
+        });
         done(null, secret);
       },
     });
@@ -43,12 +46,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async verify(rawJwtToken: string) {
-    const ticket: any = await new OAuth2Client(CLIENT_ID).verifyIdToken({
-      idToken: rawJwtToken,
-      audience: CLIENT_ID,
-    });
-    return jwkToPEM(
-      this.jwks.keys.find(key => key.kid === ticket.envelope.kid),
-    );
+    const ticket: any = decode(rawJwtToken, { complete: true });
+    return jwkToPEM(this.jwks.keys.find(key => key.kid === ticket.header.kid));
   }
 }

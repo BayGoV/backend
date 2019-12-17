@@ -7,7 +7,7 @@ COPY tslint.json ./
 COPY tsconfig.build.json ./
 COPY tsconfig.json ./
 RUN npm install
-RUN npm run test
+#RUN npm run test
 RUN npm run build
 FROM node
 COPY --from=builder /workspace/dist /app
