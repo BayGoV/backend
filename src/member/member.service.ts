@@ -13,6 +13,6 @@ export class MemberService {
       lastname: 'Wurst',
       status: 'Vollmitglied',
     };
-    this.members.set(hw.id, hw);
+    this.members.set(hw.email, hw);
   }
 }
