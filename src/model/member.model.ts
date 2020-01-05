@@ -4,4 +4,7 @@ export class Member {
   firstname: string;
   lastname: string;
   status: string;
+  street: string;
+  zip: string;
+  city: string;
 }
