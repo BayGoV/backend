@@ -57,8 +57,8 @@ export class PreferenceService {
   }
 
   async rotateSubscription() {
-    this.subscription.removeListener('message', this.messageHandler);
     const newSubscription = await this.listen();
+    this.subscription.removeListener('message', this.messageHandler);
     await this.subscription.delete();
     this.subscription = newSubscription;
     await this.cleanupSubscriptions();
