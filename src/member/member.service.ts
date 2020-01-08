@@ -10,7 +10,7 @@ export class MemberService {
   members = new Map<string, Member>();
 
   constructor(private http: HttpService) {
-    this.fetchMembersFromDGoB();
+    // this.fetchMembersFromDGoB();
     // tslint:disable-next-line:no-console
     console.log('Started loading members from DGOB');
   }

@@ -14,6 +14,7 @@ async function bootstrap() {
     if (!Object.prototype.hasOwnProperty.call(process.env, key)) {
       process.env[key] = parsed[key];
     } else {
+      // tslint:disable-next-line:no-console
       console.error(
         `"${key}" is already defined in \`process.env\` and will not be overwritten`,
       );

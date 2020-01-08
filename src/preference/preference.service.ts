@@ -15,6 +15,13 @@ export class PreferenceService {
 
   async loadFromBucket() {
     const [files] = await this.bucket.getFiles();
-    files.forEach(file => console.log(file));
+    const prefFiles = files.filter(file => file.name.endsWith('.pref'));
+    for (const prefFile of prefFiles) {
+      const data = await prefFile.download();
+      const pref = JSON.parse(data.toString());
+      this.preferences.set(pref.id, pref);
+    }
+    // tslint:disable-next-line:no-console
+    console.log(`Done loading ${files.length} preference files from bucket`);
   }
 }
