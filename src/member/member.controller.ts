@@ -16,19 +16,6 @@ export class MemberController {
 
   @Get('*')
   getSelf(@Req() req) {
-    const members = [...this.memberService.members.values()];
-    const membersWithEmail = members.reduce(
-      (acc, cur) =>
-        req.user.email.toLowerCase() === cur.email.toLowerCase()
-          ? [cur, ...acc]
-          : acc,
-      [],
-    );
-    if (membersWithEmail.length === 0) {
-      throw new HttpException('Member not found', HttpStatus.NOT_FOUND);
-    } else if (membersWithEmail.length > 1) {
-      throw new HttpException('Member not unique', HttpStatus.NOT_FOUND);
-    }
-    return membersWithEmail[0];
+    return this.memberService.memberByEmail(req.user.email);
   }
 }

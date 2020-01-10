@@ -1,31 +1,76 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Preference } from '../model/preference.model';
 import { Storage } from '@google-cloud/storage';
 import { PubSub } from '@google-cloud/pubsub';
 import { interval } from 'rxjs';
+import { verify } from 'jsonwebtoken';
 
 @Injectable()
 export class PreferenceService {
+  pubsub;
   bucket;
   subscription;
   preferences = new Map<string, Preference>();
+  provisionaryPreferences = new Map<string, Preference>();
+
   messageHandler = message => {
     const pref = JSON.parse(message.data);
-    this.preferences.set(pref.id, pref);
-    // tslint:disable-next-line:no-console
-    console.log(`Added Preference for ${pref.id}`);
+    if (pref.v < 0) {
+      this.provisionaryPreferences.delete(pref.id);
+      // tslint:disable-next-line:no-console
+      console.log(`Deleted Provisionary Preference for ${pref.id}`);
+    } else {
+      if (pref.s) {
+        const v = verify(pref.s, process.env.SYNCMASTER_SECRET);
+        delete pref.s;
+        this.preferences.set(pref.id, pref);
+        this.provisionaryPreferences.delete(pref.id);
+        // tslint:disable-next-line:no-console
+        console.log(`Added Preference for ${pref.id}`);
+      } else {
+        this.provisionaryPreferences.set(pref.id, pref);
+        // tslint:disable-next-line:no-console
+        console.log(`Added Provisionary Preference for ${pref.id}`);
+      }
+    }
     message.ack();
   };
   topicName = 'BgovBackendPreference';
   subscriptionNameTemplate = 'prefSubscription';
   rotateSubscriptionEvery = 1000 * 60 * 60;
-  deletePrefSubscriptionAfter = this.rotateSubscriptionEvery + (1000 * 60 * 5);
+  deletePrefSubscriptionAfter = this.rotateSubscriptionEvery + 1000 * 60 * 5;
 
   constructor() {
+    this.pubsub = new PubSub();
     const storage = new Storage();
     this.bucket = storage.bucket('bgov-web-preferences');
     this.listen();
-    interval(this.rotateSubscriptionEvery).subscribe(() => this.rotateSubscription());
+    interval(this.rotateSubscriptionEvery).subscribe(() =>
+      this.rotateSubscription(),
+    );
+  }
+
+  getPreference(member) {
+    if (this.provisionaryPreferences.has(member.id)) {
+      return Object.assign(
+        { p: true },
+        this.provisionaryPreferences.get(member.id),
+      );
+    }
+    return this.preferences.get(member.id);
+  }
+
+  async setPreference(member, preference) {
+    if (member.id !== preference.id) {
+      throw new HttpException(
+        'Only setting own preference is allowed',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+    this.provisionaryPreferences.set(preference.id, preference);
+    const data = JSON.stringify(preference);
+    const dataBuffer = Buffer.from(data);
+    return await this.pubsub.topic(this.topicName).publish(dataBuffer);
   }
 
   async loadFromBucket() {
@@ -41,9 +86,8 @@ export class PreferenceService {
   }
 
   async listen() {
-    const pubsub = new PubSub();
     const subscriptionName = this.subscriptionNameTemplate + Date.now();
-    const subscriptionResponse = await pubsub
+    const subscriptionResponse = await this.pubsub
       .topic(this.topicName)
       .createSubscription(subscriptionName);
     const subscription = subscriptionResponse[0];
@@ -72,9 +116,7 @@ export class PreferenceService {
     for (const subscription of subscriptions) {
       const name = subscription.name.split('/').reverse()[0];
       if (name.startsWith(this.subscriptionNameTemplate)) {
-        const age = name.substr(
-          this.subscriptionNameTemplate.length,
-        );
+        const age = name.substr(this.subscriptionNameTemplate.length);
         if (Date.now() - +age > this.deletePrefSubscriptionAfter) {
           await subscription.delete();
         }

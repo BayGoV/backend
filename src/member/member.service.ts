@@ -1,4 +1,9 @@
-import { HttpService, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpService,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 import { Member } from '../model/member.model';
 import { DGOB_CREDENTIAL_ENDPOINT, DGOB_DATA_ENDPOINT } from '../constants';
 import * as https from 'https';
@@ -13,6 +18,21 @@ export class MemberService {
     // this.fetchMembersFromDGoB();
     // tslint:disable-next-line:no-console
     console.log('Started loading members from DGOB');
+  }
+
+  memberByEmail(email) {
+    const members = [...this.members.values()];
+    const membersWithEmail = members.reduce(
+      (acc, cur) =>
+        email.toLowerCase() === cur.email.toLowerCase() ? [cur, ...acc] : acc,
+      [],
+    );
+    if (membersWithEmail.length === 0) {
+      throw new HttpException('Member not found', HttpStatus.NOT_FOUND);
+    } else if (membersWithEmail.length > 1) {
+      throw new HttpException('Member not unique', HttpStatus.NOT_FOUND);
+    }
+    return membersWithEmail[0];
   }
 
   async fetchMembersFromDGoB() {
