@@ -44,6 +44,7 @@ export class PreferenceService {
     this.pubsub = new PubSub();
     const storage = new Storage();
     this.bucket = storage.bucket('bgov-web-preferences');
+    this.loadFromBucket();
     this.listen();
     interval(this.rotateSubscriptionEvery).subscribe(() =>
       this.rotateSubscription(),
@@ -67,8 +68,15 @@ export class PreferenceService {
         HttpStatus.FORBIDDEN,
       );
     }
-    this.provisionaryPreferences.set(preference.id, preference);
-    const data = JSON.stringify(preference);
+    const currentPreference =
+      this.provisionaryPreferences.get(preference.id) ||
+      this.preferences.get(preference.id);
+    const version = !!currentPreference ? currentPreference.v + 1 : 0;
+    const provisionaryPreference = Object.assign({}, preference, {
+      v: version,
+    });
+    this.provisionaryPreferences.set(preference.id, provisionaryPreference);
+    const data = JSON.stringify(provisionaryPreference);
     const dataBuffer = Buffer.from(data);
     return await this.pubsub.topic(this.topicName).publish(dataBuffer);
   }
@@ -82,7 +90,7 @@ export class PreferenceService {
       this.preferences.set(pref.id, pref);
     }
     // tslint:disable-next-line:no-console
-    console.log(`Done loading ${files.length} preference files from bucket`);
+    console.log(`Done loading ${prefFiles.length} preference files from bucket`);
   }
 
   async listen() {

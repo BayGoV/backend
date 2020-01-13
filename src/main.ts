@@ -23,7 +23,8 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.use((req: Request, res: Response, next) => {
     res.set('Access-Control-Allow-Origin', '*');
-    res.set('Access-Control-Allow-Headers', 'authorization');
+    res.set('Access-Control-Allow-Headers', 'authorization, content-type');
+    res.set('Access-Control-Allow-Methods', 'GET, PUT, POST');
     if (req.method === 'OPTIONS') {
       res.sendStatus(200);
       res.send();

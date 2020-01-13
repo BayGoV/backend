@@ -1,11 +1,11 @@
-import { Controller, Get, Post, Req, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Req, Body, UseGuards, Put } from '@nestjs/common';
 import { PreferenceService } from './preference.service';
 import { AuthGuard } from '@nestjs/passport';
 import { MemberService } from '../member/member.service';
 import { Preference } from '../model/preference.model';
 
 @UseGuards(AuthGuard('jwt'))
-@Controller('preference')
+@Controller('api/preference')
 export class PreferenceController {
   constructor(
     private memberService: MemberService,
@@ -15,10 +15,11 @@ export class PreferenceController {
   @Get('*')
   getPreference(@Req() req) {
     const member = this.memberService.memberByEmail(req.user.email);
-    return this.preferenceService.getPreference(member);
+    const pref = this.preferenceService.getPreference(member);
+    return pref || Object.assign(new Preference(), {id: member.id});
   }
 
-  @Post()
+  @Put('*')
   setPreference(@Req() req, @Body() preference: Preference) {
     const member = this.memberService.memberByEmail(req.user.email);
     this.preferenceService.setPreference(member, preference);
