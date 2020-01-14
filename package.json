@@ -27,6 +27,8 @@
     "@nestjs/jwt": "^6.1.1",
     "@nestjs/passport": "^6.1.1",
     "@nestjs/platform-express": "^6.7.2",
+    "@nestjs/platform-socket.io": "^6.10.14",
+    "@nestjs/websockets": "^6.10.14",
     "dotenv": "^8.2.0",
     "jquery": "^3.4.1",
     "jsdom": "^15.2.1",

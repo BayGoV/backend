@@ -8,11 +8,12 @@ import { MemberService } from './member/member.service';
 import { PreferenceService } from './preference/preference.service';
 import { MemberController } from './member/member.controller';
 import { PreferenceController } from './preference/preference.controller';
+import { EventsGateway } from './events.gateway';
 
 @Module({
   imports: [HttpModule, PassportModule, JwtModule.register({})],
   controllers: [AppController, MemberController, PreferenceController],
-  providers: [AppService, JwtStrategy, MemberService, PreferenceService],
+  providers: [AppService, JwtStrategy, MemberService, PreferenceService, EventsGateway],
 })
 export class AppModule {
 }
