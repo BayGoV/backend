@@ -4,6 +4,7 @@ import { Storage } from '@google-cloud/storage';
 import { PubSub } from '@google-cloud/pubsub';
 import { interval } from 'rxjs';
 import { verify } from 'jsonwebtoken';
+import { EventsGateway } from '../events.gateway';
 
 @Injectable()
 export class PreferenceService {
@@ -24,6 +25,8 @@ export class PreferenceService {
         const v = verify(pref.s, process.env.SYNCMASTER_SECRET);
         delete pref.s;
         this.preferences.set(pref.id, pref);
+        const prefMessage = { type: 'Preference', payload: pref };
+        this.eventsGateway.notify(pref.id, prefMessage);
         this.provisionaryPreferences.delete(pref.id);
         // tslint:disable-next-line:no-console
         console.log(`Added Preference for ${pref.id}`);
@@ -40,7 +43,7 @@ export class PreferenceService {
   rotateSubscriptionEvery = 1000 * 60 * 60;
   deletePrefSubscriptionAfter = this.rotateSubscriptionEvery + 1000 * 60 * 5;
 
-  constructor() {
+  constructor(private eventsGateway: EventsGateway) {
     this.pubsub = new PubSub();
     const storage = new Storage();
     this.bucket = storage.bucket('bgov-web-preferences');
@@ -90,7 +93,9 @@ export class PreferenceService {
       this.preferences.set(pref.id, pref);
     }
     // tslint:disable-next-line:no-console
-    console.log(`Done loading ${prefFiles.length} preference files from bucket`);
+    console.log(
+      `Done loading ${prefFiles.length} preference files from bucket`,
+    );
   }
 
   async listen() {

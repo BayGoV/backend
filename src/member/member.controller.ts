@@ -1,8 +1,6 @@
 import {
   Controller,
   Get,
-  HttpException,
-  HttpStatus,
   Req,
   UseGuards,
 } from '@nestjs/common';
