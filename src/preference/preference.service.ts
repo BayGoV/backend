@@ -77,6 +77,7 @@ export class PreferenceService {
     const provisionaryPreference = Object.assign({}, preference, {
       v: version,
     });
+    delete provisionaryPreference.s;
     this.provisionaryPreferences.set(preference.id, provisionaryPreference);
     const data = JSON.stringify(provisionaryPreference);
     const dataBuffer = Buffer.from(data);
