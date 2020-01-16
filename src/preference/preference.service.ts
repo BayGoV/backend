@@ -23,7 +23,6 @@ export class PreferenceService {
     } else {
       if (pref.s) {
         const v = verify(pref.s, process.env.SYNCMASTER_SECRET);
-        delete pref.s;
         this.preferences.set(pref.id, pref);
         const prefMessage = { type: 'Preference', payload: pref };
         this.eventsGateway.notify(pref.id, prefMessage);
