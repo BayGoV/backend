@@ -83,10 +83,11 @@ export class MemberService {
         firstname: row.querySelector('td:nth-child(6)').textContent,
         lastname: row.querySelector('td:nth-child(5)').textContent,
         status: row.querySelector('td:nth-child(10)').textContent,
-        email: row.querySelector('td:nth-child(14)').textContent,
+        email: row.querySelector('td:nth-child(11)').textContent,
         street: row.querySelector('td:nth-child(7)').textContent,
         zip: row.querySelector('td:nth-child(8)').textContent,
         city: row.querySelector('td:nth-child(9)').textContent,
+        dgoz: row.querySelector('td:nth-child(12)').textContent !== '0',
       } as Member;
     });
   }

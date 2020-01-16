@@ -7,4 +7,5 @@ export class Member {
   street: string;
   zip: string;
   city: string;
+  dgoz: boolean;
 }

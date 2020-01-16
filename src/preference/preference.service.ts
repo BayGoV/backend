@@ -90,6 +90,7 @@ export class PreferenceService {
     for (const prefFile of prefFiles) {
       const data = await prefFile.download();
       const pref = JSON.parse(data.toString());
+      pref.s = 'Loaded';
       this.preferences.set(pref.id, pref);
     }
     // tslint:disable-next-line:no-console
