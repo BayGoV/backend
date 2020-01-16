@@ -20,9 +20,9 @@ export class PreferenceController {
   }
 
   @Put('*')
-  setPreference(@Req() req, @Body() preference: Preference) {
+  async setPreference(@Req() req, @Body() preference: Preference) {
     const member = this.memberService.memberByEmail(req.user.email);
-    this.preferenceService.setPreference(member, preference);
+    await this.preferenceService.setPreference(member, preference);
     return preference;
   }
 }

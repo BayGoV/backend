@@ -1,5 +1,6 @@
-export class Member {
-  id: string;
+import { VersionedDataTransferObject } from './versioned-data-transfer-object';
+
+export class Member extends VersionedDataTransferObject {
   email: string;
   firstname: string;
   lastname: string;

@@ -11,11 +11,13 @@ import { PreferenceController } from './preference/preference.controller';
 import { EventsGateway } from './events.gateway';
 import { MailService } from './mail/mail.service';
 import { ContactController } from './contact/contact.controller';
+import { MeetupService } from './meetup/meetup.service';
+import { MeetupController } from './meetup/meetup.controller';
 
 @Module({
   imports: [HttpModule, PassportModule, JwtModule.register({})],
-  controllers: [AppController, MemberController, PreferenceController, ContactController],
-  providers: [AppService, JwtStrategy, MemberService, PreferenceService, EventsGateway, MailService],
+  controllers: [AppController, MemberController, PreferenceController, ContactController, MeetupController],
+  providers: [AppService, JwtStrategy, MemberService, PreferenceService, EventsGateway, MailService, MeetupService],
 })
 export class AppModule {
 }

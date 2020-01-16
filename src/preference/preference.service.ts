@@ -5,15 +5,19 @@ import { PubSub } from '@google-cloud/pubsub';
 import { interval } from 'rxjs';
 import { verify } from 'jsonwebtoken';
 import { EventsGateway } from '../events.gateway';
+import { AbstractStateService } from '../abstract-state.service';
 
 @Injectable()
-export class PreferenceService {
+export class PreferenceService extends AbstractStateService {
   pubsub;
   bucket;
   subscription;
   preferences = new Map<string, Preference>();
   provisionaryPreferences = new Map<string, Preference>();
-
+  topicName = 'BgovBackendPreference';
+  subscriptionNameTemplate = 'prefSubscription';
+  rotateSubscriptionEvery = 1000 * 60 * 60;
+  deletePrefSubscriptionAfter = this.rotateSubscriptionEvery + 1000 * 60 * 5;
   messageHandler = message => {
     const pref = JSON.parse(message.data);
     if (pref.v < 0) {
@@ -37,12 +41,9 @@ export class PreferenceService {
     }
     message.ack();
   };
-  topicName = 'BgovBackendPreference';
-  subscriptionNameTemplate = 'prefSubscription';
-  rotateSubscriptionEvery = 1000 * 60 * 60;
-  deletePrefSubscriptionAfter = this.rotateSubscriptionEvery + 1000 * 60 * 5;
 
   constructor(private eventsGateway: EventsGateway) {
+    super();
     this.pubsub = new PubSub();
     const storage = new Storage();
     this.bucket = storage.bucket('bgov-web-preferences');
@@ -97,44 +98,5 @@ export class PreferenceService {
     console.log(
       `Done loading ${prefFiles.length} preference files from bucket`,
     );
-  }
-
-  async listen() {
-    const subscriptionName = this.subscriptionNameTemplate + Date.now();
-    const subscriptionResponse = await this.pubsub
-      .topic(this.topicName)
-      .createSubscription(subscriptionName);
-    const subscription = subscriptionResponse[0];
-    if (!this.subscription) {
-      this.subscription = subscription;
-    }
-    // tslint:disable-next-line:no-console
-    console.log(`Listening for ${this.topicName}`);
-    subscription.on(`message`, this.messageHandler);
-    return subscription;
-  }
-
-  async rotateSubscription() {
-    const newSubscription = await this.listen();
-    this.subscription.removeListener('message', this.messageHandler);
-    await this.subscription.delete();
-    this.subscription = newSubscription;
-    await this.cleanupSubscriptions();
-  }
-
-  async cleanupSubscriptions() {
-    const pubsub = new PubSub();
-    const [subscriptions] = await pubsub
-      .topic(this.topicName)
-      .getSubscriptions();
-    for (const subscription of subscriptions) {
-      const name = subscription.name.split('/').reverse()[0];
-      if (name.startsWith(this.subscriptionNameTemplate)) {
-        const age = name.substr(this.subscriptionNameTemplate.length);
-        if (Date.now() - +age > this.deletePrefSubscriptionAfter) {
-          await subscription.delete();
-        }
-      }
-    }
   }
 }
