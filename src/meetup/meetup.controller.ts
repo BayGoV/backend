@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Put, Req } from '@nestjs/common';
+import { Body, Controller, Get, Put, Req, UseGuards } from '@nestjs/common';
 import { MemberService } from '../member/member.service';
 import { MeetupService } from './meetup.service';
 import { Meetup } from '../model/meetup.model';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('api/meetup')
 export class MeetupController {
@@ -12,15 +13,21 @@ export class MeetupController {
 
   @Get('*')
   getPreference(@Req() req) {
-    const member = this.memberService.memberByEmail(req.user.email);
-    const meetups = this.meetupService.getMeetups(member);
+    let meetups;
+    try {
+      const member = this.memberService.memberByEmail(req.user.email);
+      meetups = this.meetupService.getMeetups(member);
+    } catch (e) {
+      meetups = this.meetupService.getMeetups(null);
+    }
+
     return meetups;
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Put('*')
   async setPreference(@Req() req, @Body() meetup: Meetup) {
     const member = this.memberService.memberByEmail(req.user.email);
-    await this.meetupService.setMeetup(meetup, member);
-    return meetup;
+    return await this.meetupService.setMeetup(meetup, member);
   }
 }

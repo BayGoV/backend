@@ -17,7 +17,7 @@ export class PreferenceService extends AbstractStateService {
   topicName = 'BgovBackendPreference';
   subscriptionNameTemplate = 'prefSubscription';
   rotateSubscriptionEvery = 1000 * 60 * 60;
-  deletePrefSubscriptionAfter = this.rotateSubscriptionEvery + 1000 * 60 * 5;
+  deleteSubscriptionAfter = this.rotateSubscriptionEvery + 1000 * 60 * 5;
   messageHandler = message => {
     const pref = JSON.parse(message.data);
     if (pref.v < 0) {

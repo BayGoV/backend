@@ -18,7 +18,7 @@ export class MeetupService extends AbstractStateService {
   bucketName = 'bgov-web-meetups';
   subscriptionNameTemplate = 'meetupSubscription';
   rotateSubscriptionEvery = 1000 * 60 * 60;
-  deletePrefSubscriptionAfter = this.rotateSubscriptionEvery + 1000 * 60 * 5;
+  deleteSubscriptionAfter = this.rotateSubscriptionEvery + 1000 * 60 * 5;
   messageHandler = message => {
     const meetup = JSON.parse(message.data);
     if (meetup.v < 0) {
@@ -56,12 +56,6 @@ export class MeetupService extends AbstractStateService {
   }
 
   async setMeetup(meetup, member) {
-    if (member.id !== meetup.memberId || !meetup.id.startsWith(member.id)) {
-      throw new HttpException(
-        'Only editing own meetups is allowed',
-        HttpStatus.FORBIDDEN,
-      );
-    }
     const currentMeetup =
       this.provisionaryMeetups.get(meetup.id) || this.meetups.get(meetup.id);
     const version = !!currentMeetup ? currentMeetup.v + 1 : 0;
@@ -75,6 +69,13 @@ export class MeetupService extends AbstractStateService {
       provisionaryMeetup.id = member.id + '-' + ids.size;
     }
     delete provisionaryMeetup.s;
+    provisionaryMeetup.memberId = member.id;
+    if (!provisionaryMeetup.id.startsWith(member.id)) {
+      throw new HttpException(
+        'Only editing own meetups is allowed',
+        HttpStatus.FORBIDDEN,
+      );
+    }
     this.provisionaryMeetups.set(meetup.id, provisionaryMeetup);
     const data = JSON.stringify(provisionaryMeetup);
     const dataBuffer = Buffer.from(data);

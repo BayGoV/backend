@@ -6,7 +6,7 @@ export class AbstractStateService {
   topicName;
   subscription;
   messageHandler;
-  deletePrefSubscriptionAfter;
+  deleteSubscriptionAfter;
 
   async listen() {
     const subscriptionName = this.subscriptionNameTemplate + Date.now();
@@ -40,7 +40,7 @@ export class AbstractStateService {
       const name = subscription.name.split('/').reverse()[0];
       if (name.startsWith(this.subscriptionNameTemplate)) {
         const age = name.substr(this.subscriptionNameTemplate.length);
-        if (Date.now() - +age > this.deletePrefSubscriptionAfter) {
+        if (Date.now() - +age > this.deleteSubscriptionAfter) {
           await subscription.delete();
         }
       }
