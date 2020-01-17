@@ -30,7 +30,7 @@ export class MeetupService extends AbstractStateService {
         const v = verify(meetup.s, process.env.SYNCMASTER_SECRET);
         this.meetups.set(meetup.id, meetup);
         const meetupMessage = { type: 'Meetup', payload: meetup };
-        this.eventsGateway.notify(meetup.id, meetupMessage);
+        this.eventsGateway.notify(meetup.memberId, meetupMessage);
         this.provisionaryMeetups.delete(meetup.id);
         // tslint:disable-next-line:no-console
         console.log(`Added Meetup for ${meetup.id}`);
