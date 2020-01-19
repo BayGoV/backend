@@ -80,14 +80,14 @@ export class MemberService {
     return rows.map(row => {
       return {
         id: row.querySelector('td:nth-child(2)').textContent,
-        firstname: row.querySelector('td:nth-child(6)').textContent,
-        lastname: row.querySelector('td:nth-child(5)').textContent,
-        status: row.querySelector('td:nth-child(10)').textContent,
-        email: row.querySelector('td:nth-child(11)').textContent,
+        firstname: row.querySelector('td:nth-child(5)').textContent,
+        lastname: row.querySelector('td:nth-child(4)').textContent,
+        status: row.querySelector('td:nth-child(3)').textContent,
+        email: row.querySelector('td:nth-child(10)').textContent,
         street: row.querySelector('td:nth-child(7)').textContent,
         zip: row.querySelector('td:nth-child(8)').textContent,
         city: row.querySelector('td:nth-child(9)').textContent,
-        dgoz: row.querySelector('td:nth-child(12)').textContent !== '0',
+        dgoz: row.querySelector('td:nth-child(6)').textContent !== '0',
       } as Member;
     });
   }
