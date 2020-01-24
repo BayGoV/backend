@@ -1,6 +1,11 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
-import { HttpService, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpService,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 import * as jwkToPEM from 'jwk-to-pem';
 import { decode } from 'jsonwebtoken';
 
@@ -32,6 +37,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: any) {
+    if (payload.iss !== 'https://securetoken.google.com/bgov-web') {
+      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+    }
     return payload;
   }
 

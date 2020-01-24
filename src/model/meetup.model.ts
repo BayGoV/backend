@@ -2,7 +2,7 @@ import { VersionedDataTransferObject } from './versioned-data-transfer-object';
 
 class ScopedField {
   value: string;
-  scope: 'public' | 'private';
+  scope: 'public' | 'internal' | 'private';
 }
 
 // tslint:disable-next-line:max-classes-per-file
@@ -13,5 +13,5 @@ export class Meetup extends VersionedDataTransferObject {
   frequency: ScopedField;
   email?: ScopedField;
   phone?: ScopedField;
-  scope: 'public' | 'private';
+  scope: 'public' | 'internal' | 'private';
 }
