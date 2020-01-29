@@ -3,6 +3,7 @@ import { MemberService } from '../member/member.service';
 import { MeetupService } from './meetup.service';
 import { Meetup } from '../model/meetup.model';
 import { AuthGuard } from '@nestjs/passport';
+import { OptionalJwtAuthGuard } from '../optional-jwt.authguard';
 
 @Controller('api/meetup')
 export class MeetupController {
@@ -11,6 +12,7 @@ export class MeetupController {
     private meetupService: MeetupService,
   ) {}
 
+  @UseGuards(OptionalJwtAuthGuard)
   @Get('*')
   getPreference(@Req() req) {
     let meetups;
