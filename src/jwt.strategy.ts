@@ -55,6 +55,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async verify(rawJwtToken: string) {
     const ticket: any = decode(rawJwtToken, { complete: true });
-    return jwkToPEM(this.jwks.keys.find(key => key.kid === ticket.header.kid));
+    try {
+      return jwkToPEM(
+        this.jwks.keys.find(key => key.kid === ticket.header.kid),
+      );
+    } catch (e) {
+      return '';
+    }
   }
 }

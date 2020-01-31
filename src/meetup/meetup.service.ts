@@ -6,6 +6,7 @@ import { Storage } from '@google-cloud/storage';
 import { interval } from 'rxjs';
 import { AbstractStateService } from '../abstract-state.service';
 import { verify } from 'jsonwebtoken';
+import { isObject } from 'util';
 
 @Injectable()
 export class MeetupService extends AbstractStateService {
@@ -87,14 +88,19 @@ export class MeetupService extends AbstractStateService {
     const meetup = this.provisionaryMeetups.has(id)
       ? this.provisionaryMeetups.get(id)
       : this.meetups.get(id);
-    if (meetup.scope === 'private' && !member) {
-      return null;
+    switch (meetup.scope) {
+      case 'private':
+        return !!member && member.id === meetup.memberId ? meetup : null;
+      case 'internal':
+        return !!member ? meetup : null;
+      case 'public':
+        return meetup;
     }
-    for (const key of Object.keys(meetup)) {
-      if (meetup[key].scope === 'private' && !member) {
-        delete meetup[key];
-      }
-    }
+    // for (const key of Object.keys(meetup)) {
+    //   if (meetup[key].scope === 'private' && !member) {
+    //     delete meetup[key];
+    //   }
+    // }
     return meetup;
   }
 
