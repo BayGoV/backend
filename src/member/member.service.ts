@@ -93,7 +93,7 @@ export class MemberService {
   }
 
   getMailingLists(member) {
-    if (!member || !['09000453'].includes(member.id)) {
+    if (!member || !['09000453', '09000702', '09000750'].includes(member.id)) {
       throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
     }
     return {
