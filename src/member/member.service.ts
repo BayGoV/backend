@@ -22,6 +22,12 @@ export class MemberService {
 
   memberByEmail(email) {
     const members = [...this.members.values()];
+    if (members.length === 0) {
+      throw new HttpException(
+        'Server not ready',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
     const membersWithEmail = members.reduce(
       (acc, cur) =>
         email.toLowerCase() === cur.email.toLowerCase() ? [cur, ...acc] : acc,
