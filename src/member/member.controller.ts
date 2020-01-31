@@ -13,6 +13,13 @@ export class MemberController {
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @Get('mailinglists')
+  getMailingLists(@Req() req) {
+    const member = this.memberService.memberByEmail(req.user.email);
+    return this.memberService.getMailingLists(member);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
   @Get('*')
   getSelf(@Req() req) {
     return this.memberService.memberByEmail(req.user.email);

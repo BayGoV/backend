@@ -91,4 +91,13 @@ export class MemberService {
       } as Member;
     });
   }
+
+  getMailingLists(member) {
+    if (!member || !['09000453'].includes(member.id)) {
+      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+    }
+    return {
+      all: [...this.members.values()].map(m => m.email).filter(m => !!m),
+    };
+  }
 }
