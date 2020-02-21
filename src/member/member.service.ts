@@ -9,12 +9,15 @@ import { DGOB_CREDENTIAL_ENDPOINT, DGOB_DATA_ENDPOINT } from '../constants';
 import * as https from 'https';
 import { map, switchMap } from 'rxjs/operators';
 import { JSDOM } from 'jsdom';
+import { PreferenceService } from '../preference/preference.service';
 
 @Injectable()
 export class MemberService {
   members = new Map<string, Member>();
 
-  constructor(private http: HttpService) {
+  constructor(
+    private http: HttpService,
+  ) {
     this.fetchMembersFromDGoB();
     // tslint:disable-next-line:no-console
     console.log('Started loading members from DGOB');
@@ -96,14 +99,5 @@ export class MemberService {
         dgoz: row.querySelector('td:nth-child(6)').textContent !== '0',
       } as Member;
     });
-  }
-
-  getMailingLists(member) {
-    if (!member || !['09000453', '09000702', '09000750'].includes(member.id)) {
-      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
-    }
-    return {
-      all: [...this.members.values()].map(m => m.email).filter(m => !!m),
-    };
   }
 }
