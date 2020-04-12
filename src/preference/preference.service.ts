@@ -104,15 +104,20 @@ export class PreferenceService extends AbstractStateService {
     }
     Logger.log(`Done loading ${prefFiles.length} preference files from bucket`);
     await this.memberService.finishedLoading();
-    [...this.preferences.values()]
-      .filter(p => !!p.backupEmail)
-      .forEach(p => this.memberService.backupEmails.set(p.id, p.backupEmail));
+    for (const preference of this.preferences.values()) {
+      if (preference.secret) {
+        this.memberService.memberSecrets.set(preference.secret, preference.id);
+      }
+      if (preference.backupEmail) {
+        this.memberService.backupEmails.set(
+          preference.id,
+          preference.backupEmail,
+        );
+      }
+    }
     Logger.log(
       `Registered ${this.memberService.backupEmails.size} Backup-Emails`,
     );
-    [...this.preferences.values()]
-      .filter(p => !!p.secret)
-      .forEach(p => this.memberService.memberSecrets.set(p.secret, p.id));
     Logger.log(
       `Registered ${this.memberService.memberSecrets.size} Member-Secrets`,
     );
