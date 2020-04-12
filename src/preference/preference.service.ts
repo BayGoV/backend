@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { Preference } from '../model/preference.model';
 import { Storage } from '@google-cloud/storage';
 import { PubSub } from '@google-cloud/pubsub';
@@ -6,6 +6,9 @@ import { interval } from 'rxjs';
 import { verify } from 'jsonwebtoken';
 import { EventsGateway } from '../events.gateway';
 import { AbstractStateService } from '../abstract-state.service';
+import { MemberService } from '../member/member.service';
+import { filter } from 'rxjs/operators';
+import { randomBytes } from 'crypto';
 
 @Injectable()
 export class PreferenceService extends AbstractStateService {
@@ -22,27 +25,28 @@ export class PreferenceService extends AbstractStateService {
     const pref = JSON.parse(message.data);
     if (pref.v < 0) {
       this.provisionaryPreferences.delete(pref.id);
-      // tslint:disable-next-line:no-console
-      console.log(`Deleted Provisionary Preference for ${pref.id}`);
+      Logger.log(`Deleted Provisionary Preference for ${pref.id}`);
     } else {
       if (pref.s) {
         const v = verify(pref.s, process.env.SYNCMASTER_SECRET);
         this.preferences.set(pref.id, pref);
+        this.memberService.backupEmails.set(pref.id, pref.backupEmail);
         const prefMessage = { type: 'Preference', payload: pref };
         this.eventsGateway.notify(pref.id, prefMessage);
         this.provisionaryPreferences.delete(pref.id);
-        // tslint:disable-next-line:no-console
-        console.log(`Added Preference for ${pref.id}`);
+        Logger.log(`Added Preference for ${pref.id}`);
       } else {
         this.provisionaryPreferences.set(pref.id, pref);
-        // tslint:disable-next-line:no-console
-        console.log(`Added Provisionary Preference for ${pref.id}`);
+        Logger.log(`Added Provisionary Preference for ${pref.id}`);
       }
     }
     message.ack();
   };
 
-  constructor(private eventsGateway: EventsGateway) {
+  constructor(
+    private eventsGateway: EventsGateway,
+    private memberService: MemberService,
+  ) {
     super();
     this.pubsub = new PubSub();
     const storage = new Storage();
@@ -55,13 +59,17 @@ export class PreferenceService extends AbstractStateService {
   }
 
   getPreference(member) {
-    if (this.provisionaryPreferences.has(member.id)) {
-      return Object.assign(
-        { p: true },
-        this.provisionaryPreferences.get(member.id),
-      );
+    const preference = this.provisionaryPreferences.has(member.id)
+      ? Object.assign({ p: true }, this.provisionaryPreferences.get(member.id))
+      : this.preferences.get(member.id);
+
+    if (!!preference && !preference.secret) {
+      preference.secret = randomBytes(5)
+        .toString('hex')
+        .slice(0, 7);
+      this.setPreference(member, preference);
     }
-    return this.preferences.get(member.id);
+    return preference || new Preference();
   }
 
   async setPreference(member, preference) {
@@ -94,9 +102,19 @@ export class PreferenceService extends AbstractStateService {
       pref.s = 'Loaded';
       this.preferences.set(pref.id, pref);
     }
-    // tslint:disable-next-line:no-console
-    console.log(
-      `Done loading ${prefFiles.length} preference files from bucket`,
+    Logger.log(`Done loading ${prefFiles.length} preference files from bucket`);
+    await this.memberService.finishedLoading();
+    [...this.preferences.values()]
+      .filter(p => !!p.backupEmail)
+      .forEach(p => this.memberService.backupEmails.set(p.id, p.backupEmail));
+    Logger.log(
+      `Registered ${this.memberService.backupEmails.size} Backup-Emails`,
+    );
+    [...this.preferences.values()]
+      .filter(p => !!p.secret)
+      .forEach(p => this.memberService.memberSecrets.set(p.secret, p.id));
+    Logger.log(
+      `Registered ${this.memberService.memberSecrets.size} Member-Secrets`,
     );
   }
 }

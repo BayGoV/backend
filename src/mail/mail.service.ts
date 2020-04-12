@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import { MAIL_FROM, MAIL_TO } from '../constants';
 
@@ -24,7 +24,6 @@ export class MailService {
       attachments: [],
     };
     const info = await transporter.sendMail(mailOptions);
-    // tslint:disable-next-line:no-console
-    console.log('Message sent: %s', info.messageId);
+    Logger.log('Message sent: %s', info.messageId);
   }
 }

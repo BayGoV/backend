@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { Request, Response } from 'express';
 import { Storage } from '@google-cloud/storage';
 import { parse } from 'dotenv';
+import { Logger } from '@nestjs/common';
 
 async function bootstrap() {
   const storage = new Storage();
@@ -14,8 +15,7 @@ async function bootstrap() {
     if (!Object.prototype.hasOwnProperty.call(process.env, key)) {
       process.env[key] = parsed[key];
     } else {
-      // tslint:disable-next-line:no-console
-      console.error(
+      Logger.error(
         `"${key}" is already defined in \`process.env\` and will not be overwritten`,
       );
     }

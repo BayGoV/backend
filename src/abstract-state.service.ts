@@ -1,4 +1,5 @@
 import { PubSub } from '@google-cloud/pubsub';
+import { Logger } from '@nestjs/common';
 
 export class AbstractStateService {
   subscriptionNameTemplate;
@@ -17,8 +18,7 @@ export class AbstractStateService {
     if (!this.subscription) {
       this.subscription = subscription;
     }
-    // tslint:disable-next-line:no-console
-    console.log(`Listening for ${this.topicName}`);
+    Logger.log(`Listening for ${this.topicName}`);
     subscription.on(`message`, this.messageHandler);
     return subscription;
   }

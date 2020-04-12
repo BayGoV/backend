@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { Meetup } from '../model/meetup.model';
 import { EventsGateway } from '../events.gateway';
 import { PubSub } from '@google-cloud/pubsub';
@@ -24,8 +24,7 @@ export class MeetupService extends AbstractStateService {
     const meetup = JSON.parse(message.data);
     if (meetup.v < 0) {
       this.provisionaryMeetups.delete(meetup.id);
-      // tslint:disable-next-line:no-console
-      console.log(`Deleted Provisionary Meetup for ${meetup.id}`);
+      Logger.log(`Deleted Provisionary Meetup for ${meetup.id}`);
     } else {
       if (meetup.s) {
         const v = verify(meetup.s, process.env.SYNCMASTER_SECRET);
@@ -33,12 +32,10 @@ export class MeetupService extends AbstractStateService {
         const meetupMessage = { type: 'Meetup', payload: meetup };
         this.eventsGateway.notify(meetup.memberId, meetupMessage);
         this.provisionaryMeetups.delete(meetup.id);
-        // tslint:disable-next-line:no-console
-        console.log(`Added Meetup for ${meetup.id}`);
+        Logger.log(`Added Meetup for ${meetup.id}`);
       } else {
         this.provisionaryMeetups.set(meetup.id, meetup);
-        // tslint:disable-next-line:no-console
-        console.log(`Added Provisionary Meetup for ${meetup.id}`);
+        Logger.log(`Added Provisionary Meetup for ${meetup.id}`);
       }
     }
     message.ack();
@@ -122,7 +119,6 @@ export class MeetupService extends AbstractStateService {
       meetup.s = 'Loaded';
       this.meetups.set(meetup.id, meetup);
     }
-    // tslint:disable-next-line:no-console
-    console.log(`Done loading ${meetupFiles.length} meetup files from bucket`);
+    Logger.log(`Done loading ${meetupFiles.length} meetup files from bucket`);
   }
 }

@@ -4,7 +4,7 @@ import {
   HttpException,
   HttpService,
   HttpStatus,
-  Injectable,
+  Injectable, Logger,
 } from '@nestjs/common';
 import * as jwkToPEM from 'jwk-to-pem';
 import { decode } from 'jsonwebtoken';
@@ -24,11 +24,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       secretOrKeyProvider: async (request, rawJwtToken, done) => {
-        // tslint:disable-next-line:no-console
         const secret = await this.verify(rawJwtToken).catch(e => {
           this.getKeys();
-          // tslint:disable-next-line:no-console
-          console.error(e);
+          Logger.error('JWT verify error', e);
         });
         done(null, secret);
       },

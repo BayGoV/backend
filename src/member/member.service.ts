@@ -3,24 +3,35 @@ import {
   HttpService,
   HttpStatus,
   Injectable,
+  Logger,
 } from '@nestjs/common';
 import { Member } from '../model/member.model';
 import { DGOB_CREDENTIAL_ENDPOINT, DGOB_DATA_ENDPOINT } from '../constants';
 import * as https from 'https';
-import { map, switchMap } from 'rxjs/operators';
+import { filter, first, map, switchMap } from 'rxjs/operators';
 import { JSDOM } from 'jsdom';
-import { PreferenceService } from '../preference/preference.service';
+import { BehaviorSubject } from 'rxjs';
 
 @Injectable()
 export class MemberService {
-  members = new Map<string, Member>();
+  private members = new Map<string, Member>();
+  backupEmails = new Map<string, string>();
+  memberSecrets = new Map<string, string>();
+  private loading = new BehaviorSubject(true);
 
   constructor(
     private http: HttpService,
   ) {
     this.fetchMembersFromDGoB();
-    // tslint:disable-next-line:no-console
-    console.log('Started loading members from DGOB');
+    Logger.log('Started loading members from DGOB');
+  }
+
+  memberBySecret(secret: string) {
+    const member = this.members.get(this.memberSecrets.get(secret));
+    if (!member) {
+      throw new HttpException('Member not found', HttpStatus.NOT_FOUND);
+    }
+    return member;
   }
 
   memberByEmail(email) {
@@ -36,12 +47,29 @@ export class MemberService {
         email.toLowerCase() === cur.email.toLowerCase() ? [cur, ...acc] : acc,
       [],
     );
+    if (membersWithEmail.length === 1) {
+      return membersWithEmail[0];
+    }
+    for (const [backupEmailId, backupEmail] of this.backupEmails.entries()) {
+      if (email.toLowerCase() === backupEmail) {
+        membersWithEmail.push(this.members.get(backupEmailId));
+      }
+    }
     if (membersWithEmail.length === 0) {
       throw new HttpException('Member not found', HttpStatus.NOT_FOUND);
     } else if (membersWithEmail.length > 1) {
       throw new HttpException('Member not unique', HttpStatus.NOT_FOUND);
     }
     return membersWithEmail[0];
+  }
+
+  async finishedLoading() {
+    return this.loading
+      .pipe(
+        filter(loading => !loading),
+        first(),
+      )
+      .toPromise();
   }
 
   async fetchMembersFromDGoB() {
@@ -78,8 +106,8 @@ export class MemberService {
         this.members.set(member.id, member);
       }
     });
-    // tslint:disable-next-line:no-console
-    console.log(`Loaded ${this.members.size} members w/emails from DGOB`);
+    Logger.log(`Loaded ${this.members.size} members w/emails from DGOB`);
+    this.loading.next(false);
   }
 
   parseMembers(membersHtml) {
