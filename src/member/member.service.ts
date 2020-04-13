@@ -11,6 +11,7 @@ import * as https from 'https';
 import { filter, first, map, switchMap } from 'rxjs/operators';
 import { JSDOM } from 'jsdom';
 import { BehaviorSubject } from 'rxjs';
+import { encode, decode } from 'utf8';
 
 @Injectable()
 export class MemberService {
@@ -19,9 +20,7 @@ export class MemberService {
   memberSecrets = new Map<string, string>();
   private loading = new BehaviorSubject(true);
 
-  constructor(
-    private http: HttpService,
-  ) {
+  constructor(private http: HttpService) {
     this.fetchMembersFromDGoB();
     Logger.log('Started loading members from DGOB');
   }
@@ -94,6 +93,7 @@ export class MemberService {
             auth: { username: 'bgovmv', password: process.env.BGOV_MV_PW },
             headers: { Cookie: cookie },
             httpsAgent: agent,
+            responseType: 'arraybuffer',
           }),
         ),
       )
@@ -128,6 +128,6 @@ export class MemberService {
         city: row.querySelector('td:nth-child(9)').textContent,
         dgoz: row.querySelector('td:nth-child(6)').textContent !== '0',
       } as Member;
-    });
+    }).filter(member => member.lastname !== 'Nachname');
   }
 }

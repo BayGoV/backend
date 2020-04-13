@@ -29,7 +29,9 @@
     "@nestjs/platform-express": "^6.7.2",
     "@nestjs/platform-socket.io": "^6.10.14",
     "@nestjs/websockets": "^6.10.14",
+    "detect-character-encoding": "^0.8.0",
     "dotenv": "^8.2.0",
+    "encoding": "^0.1.12",
     "jquery": "^3.4.1",
     "jsdom": "^15.2.1",
     "jsonwebtoken": "^8.5.1",
@@ -37,9 +39,11 @@
     "nodemailer": "^6.4.2",
     "passport": "^0.4.1",
     "passport-jwt": "^4.0.0",
+    "pdfkit": "^0.11.0",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.0",
-    "rxjs": "^6.5.3"
+    "rxjs": "^6.5.3",
+    "utf8": "^3.0.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^6.9.0",
