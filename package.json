@@ -32,7 +32,7 @@
     "detect-character-encoding": "^0.8.0",
     "dotenv": "^8.2.0",
     "encoding": "^0.1.12",
-    "jquery": "^3.4.1",
+    "jquery": "^3.5.0",
     "jsdom": "^15.2.1",
     "jsonwebtoken": "^8.5.1",
     "jwk-to-pem": "^2.0.2",
