@@ -9,9 +9,7 @@ import { Member } from '../model/member.model';
 import { DGOB_CREDENTIAL_ENDPOINT, DGOB_DATA_ENDPOINT } from '../constants';
 import * as https from 'https';
 import { filter, first, map, switchMap } from 'rxjs/operators';
-import { JSDOM } from 'jsdom';
 import { BehaviorSubject } from 'rxjs';
-import { encode, decode } from 'utf8';
 
 @Injectable()
 export class MemberService {
