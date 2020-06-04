@@ -80,7 +80,6 @@ export class MemberService {
         DGOB_CREDENTIAL_ENDPOINT,
         'Name=bgov&Passwort=' + process.env.BGOV_PW,
         {
-          auth: { username: 'bgovmv', password: process.env.BGOV_MV_PW },
           responseType: 'text',
           httpsAgent: agent,
         },
@@ -89,11 +88,9 @@ export class MemberService {
         map(req => req.headers['set-cookie']),
         map(cookies => cookies.find(cookie => cookie.startsWith('PHPSESSID'))),
         switchMap(cookie =>
-          this.http.post(DGOB_DATA_ENDPOINT, 'LVID=09', {
-            auth: { username: 'bgovmv', password: process.env.BGOV_MV_PW },
+          this.http.get(DGOB_DATA_ENDPOINT, {
             headers: { Cookie: cookie },
             httpsAgent: agent,
-            responseType: 'arraybuffer',
           }),
         ),
       )
@@ -112,21 +109,18 @@ export class MemberService {
     this.loading.next(false);
   }
 
-  parseMembers(membersHtml) {
-    const dom = new JSDOM(membersHtml);
-    const $ = require('jquery')(dom.window);
-    const rows = [...$('tr')];
-    return rows.map(row => {
+  parseMembers(membersJSON) {
+    return membersJSON.map(row => {
       return {
-        id: row.querySelector('td:nth-child(2)').textContent,
-        firstname: row.querySelector('td:nth-child(5)').textContent,
-        lastname: row.querySelector('td:nth-child(4)').textContent,
-        status: row.querySelector('td:nth-child(3)').textContent,
-        email: row.querySelector('td:nth-child(10)').textContent,
-        street: row.querySelector('td:nth-child(7)').textContent,
-        zip: row.querySelector('td:nth-child(8)').textContent,
-        city: row.querySelector('td:nth-child(9)').textContent,
-        dgoz: row.querySelector('td:nth-child(6)').textContent !== '0',
+        id: row.MNr,
+        firstname: row.Vorname,
+        lastname: row.Nachname,
+        status: row.Artaktuell,
+        email: row.emailprivat,
+        street: row.Strasse,
+        zip: row.PLZ,
+        city: row.Ort,
+        dgoz: row.AnzahlDGoZ > 0,
       } as Member;
     }).filter(member => member.lastname !== 'Nachname');
   }
