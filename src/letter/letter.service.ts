@@ -46,15 +46,14 @@ export class LetterService {
       doc.fontSize(10);
       doc.text('Bayerischer Go-Verein e.V.', mm2pt(140), mm2pt(12));
       doc.text('VR6714 Amtsgericht München');
+      doc.text('z.H. Kai Meemken');
+      doc.text('Kochelseestrasse 10');
+      doc.text('95444 Bayreuth');
+
       doc.moveDown();
       doc.text('Ihre Mitgliedsinformation:');
       doc.text('Nummer: ' + member.id);
-      doc.text(
-        'Code: ' +
-          [...this.memberService.memberSecrets.entries()]
-            .filter(([key, value]) => value === member.id)
-            .map(([key, value]) => key),
-      );
+      doc.text('Code: ' + '[secret]');
       doc.text('Status: ' + member.status);
       doc.fontSize(12);
       doc.text(
